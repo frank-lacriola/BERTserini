@@ -80,15 +80,23 @@ def train(args, train_dataset, train_features, eval_features, eval_dataset, eval
     global_step = 0
     steps_trained_in_current_epoch = 0
 
-    files = os.listdir(args.checkpoint_dir)
-    if args.checkpoint_filename in files:
-        checkpoint = torch.load(args.model_dir)
-        model.load_state_dict(checkpoint['model_state_dict'])
-        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-        steps_trained_in_current_epoch = checkpoint['global_step']
-        check_loss = checkpoint['loss']
-        global_step = steps_trained_in_current_epoch
-        tr_loss = check_loss
+    # Loading states
+    try:
+        files = os.listdir(args.checkpoints_dir)
+        print(files)
+        if args.checkpoints_filename in files:
+            checkpoint = torch.load(f'{args.checkpoints_dir}/{args.checkpoints_filename}')
+            model.load_state_dict(checkpoint['model_state'])
+            optimizer.load_state_dict(checkpoint['optimizer_state'])
+            steps_trained_in_current_epoch = checkpoint['global_step']
+            check_loss = checkpoint['tr_loss']
+            global_step = steps_trained_in_current_epoch
+            tr_loss = check_loss
+        else:
+            print(f'No {args.checkpoints_filename} in {args.checkpoints_dir}')
+            print('Loading default model...')
+    except:
+        print('No chekpoint directory or file specified!')
 
     epochs_trained = 0
     model.zero_grad()
@@ -136,7 +144,7 @@ def train(args, train_dataset, train_features, eval_features, eval_dataset, eval
             tr_loss += loss.item()
 
             # EVALUATION:
-            if global_step % 10 == 0 and global_step != 0 and args.do_eval:
+            if args.do_eval and global_step % 10 == 0 and global_step != 0:
                 if not os.path.exists(args.output_dir):
                     os.makedirs(args.output_dir)
 
@@ -219,9 +227,12 @@ def train(args, train_dataset, train_features, eval_features, eval_dataset, eval
             global_step += 1
 
             print(tr_loss)
-
-            if global_step % 10 == 0 and global_step != 0 and args.checkpoints_dir:
-                save_ckpt(f"{args.checkpoints_dir}/{args.checkpoint_filename}", model, optimizer, scheduler, global_step, tr_loss)
+            try:
+                if global_step % 10 == 0 and global_step != 0:
+                    save_ckpt(f"{args.checkpoints_dir}/{args.checkpoints_filename}", model, optimizer, scheduler,
+                              global_step, tr_loss)
+            except:
+                print('Checkpoint dir or file name wrong or not specified!')
 
             # To end epoch:
             if args.max_steps > 0 and global_step > args.max_steps:
@@ -235,8 +246,7 @@ def train(args, train_dataset, train_features, eval_features, eval_dataset, eval
     return global_step, tr_loss / global_step
 
 
-if __name__=='__main__':
-
+if __name__ == '__main__':
     gc.collect()
     torch.cuda.empty_cache()
 
@@ -280,10 +290,10 @@ if __name__=='__main__':
     )
 
     parser.add_argument('--output_dir', default='outputs', type=str)
-    parser.add_argument('--checkpoints_dir', default=None, type=str)
     parser.add_argument('--download_squad', action="store_true")
     parser.add_argument('--do_eval', action="store_true")
-    parser.add_argument('--checkpoint_filename', default=None, type=str)
+    parser.add_argument('--checkpoints_filename', default=None, type=str)
+    parser.add_argument('--checkpoints_dir', default=None, type=str)
 
     args = parser.parse_args()
 
