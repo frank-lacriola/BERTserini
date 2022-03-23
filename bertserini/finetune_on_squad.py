@@ -85,7 +85,7 @@ def train(args, train_dataset, train_features, eval_features, eval_dataset, eval
         files = os.listdir(args.checkpoints_dir)
         print(files)
         if args.checkpoints_filename in files:
-            checkpoint = torch.load(f'{args.checkpoints_dir}/{args.checkpoints_filename}')
+            checkpoint = torch.load(f'{args.checkpoints_dir}/{args.checkpoints_filename}.pth')
             model.load_state_dict(checkpoint['model_state'])
             optimizer.load_state_dict(checkpoint['optimizer_state'])
             steps_trained_in_current_epoch = checkpoint['global_step']
@@ -93,7 +93,7 @@ def train(args, train_dataset, train_features, eval_features, eval_dataset, eval
             global_step = steps_trained_in_current_epoch
             tr_loss = check_loss
         else:
-            print(f'No {args.checkpoints_filename} in {args.checkpoints_dir}')
+            print(f'No {args.checkpoints_filename}.pth in {args.checkpoints_dir}')
             print('Loading default model...')
     except:
         print('No chekpoint directory or file specified!')
@@ -229,7 +229,7 @@ def train(args, train_dataset, train_features, eval_features, eval_dataset, eval
             print(tr_loss)
             try:
                 if global_step % 10 == 0 and global_step != 0:
-                    save_ckpt(f"{args.checkpoints_dir}/{args.checkpoints_filename}", model, optimizer, scheduler,
+                    save_ckpt(f"{args.checkpoints_dir}/{args.checkpoints_filename}.pth", model, optimizer, scheduler,
                               global_step, tr_loss)
             except:
                 print('Checkpoint dir or file name wrong or not specified!')
