@@ -106,7 +106,7 @@ def train(args, train_dataset, train_features, eval_features, eval_dataset, eval
         epoch_iterator = tqdm(train_dataloader)
         for step, batch in enumerate(epoch_iterator):
 
-            ## for amp optimization
+            # for amp optimization
             optimizer.zero_grad()
 
             # Skip past any already trained steps/batch if resuming training
@@ -220,8 +220,13 @@ def train(args, train_dataset, train_features, eval_features, eval_dataset, eval
 
             print(tr_loss)
 
-            if global_step % 10 == 0 and global_step != 0 and args.checkpoints_dir:
-                save_ckpt(f"{args.checkpoints_dir}/{args.checkpoint_filename}", model, optimizer, scheduler, global_step, tr_loss)
+
+            try:
+                if global_step % 10 == 0 and global_step != 0:
+                    save_ckpt(f"{args.checkpoints_dir}/{args.checkpoints_filename}.pth", model, optimizer, scheduler,
+                              global_step, tr_loss)
+            except:
+                print('Checkpoint dir or file name wrong or not specified!')
 
             # To end epoch:
             if args.max_steps > 0 and global_step > args.max_steps:
@@ -312,10 +317,14 @@ if __name__=='__main__':
 
     model.to(device)
 
+    # Dataset loading
     squad = tfds.load('squad')
+
     # Take only a limited num of examples for the training:
-    squad = {'train': squad['train'].take(128),
-             'validation': squad['validation'].take(64)}
+    if args.squad_perc:
+        print(f'You selected the {args.squad_perc}% of Squad dataset for fine-tuning \n')
+        squad = {'train': squad['train'].take(int(args.squad_perc / 100 * len(squad['train']))),
+                 'validation': squad['validation'].take(int(args.squad_perc / 100 * len(squad['validation'])))}
 
     processor = SquadV1Processor()
     training_examples = processor.get_examples_from_dataset(squad, evaluate=False)

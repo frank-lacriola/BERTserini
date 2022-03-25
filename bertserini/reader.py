@@ -8,7 +8,7 @@ from utils.utils_squad import SquadExample, compute_predictions_logits
 
 
 class BERT:
-    def init(self, model_name: str = 'bert-base-uncased', tokenizer_name: str = 'bert-base-uncased'):
+    def init(self, model_name: str = 'bert-base-uncased', tokenizer_name: str = 'bert-base-uncased', checkpoints_dir):
         if tokenizer_name is None:
             tokenizer_name = model_name
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -30,12 +30,13 @@ class BERT:
             "version_2_with_negative": True,
             "null_score_diff_threshold": 0,
         }
+        self.checkpoints_dir = checkpoints_dir
         
     def predict(self, question, contexts):
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
         tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased', use_fast=False)
-        state_dict = torch.load('checkpoints/checkpoint.pth')
+        state_dict = torch.load(self.checkpoints_dir)
         model = AutoModelForQuestionAnswering.from_pretrained('bert-base-uncased')
         model.load_state_dict(state_dict['model_state'])
         model.to(device)
