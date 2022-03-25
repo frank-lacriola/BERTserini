@@ -8,7 +8,7 @@ from utils.utils_squad import SquadExample, compute_predictions_logits
 
 
 class BERT:
-    def init(self, model_name: str = 'bert-base-uncased', tokenizer_name: str = 'bert-base-uncased', checkpoints_dir):
+    def init(self, checkpoints_dir, model_name: str = 'bert-base-uncased', tokenizer_name: str = 'bert-base-uncased'):
         if tokenizer_name is None:
             tokenizer_name = model_name
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

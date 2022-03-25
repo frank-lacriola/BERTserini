@@ -76,6 +76,7 @@ def train(args, train_dataset, train_features, eval_features, eval_dataset, eval
                                                 num_training_steps=t_total)
 
     tr_loss, logging_loss = 0.0, 0.0
+
     # Train!
     global_step = 0
     steps_trained_in_current_epoch = 0
@@ -114,7 +115,7 @@ def train(args, train_dataset, train_features, eval_features, eval_dataset, eval
         epoch_iterator = tqdm(train_dataloader)
         for step, batch in enumerate(epoch_iterator):
 
-            ## for amp optimization
+            # for amp optimization
             optimizer.zero_grad()
 
             # Skip past any already trained steps/batch if resuming training
@@ -144,7 +145,7 @@ def train(args, train_dataset, train_features, eval_features, eval_dataset, eval
             tr_loss += loss.item()
 
             # EVALUATION:
-            if args.do_eval and global_step % 10 == 0 and global_step != 0:
+            if args.do_eval and global_step != 0 and (global_step % 10 == 0 or global_step == (len(epoch_iterator)-1)):
                 if not os.path.exists(args.output_dir):
                     os.makedirs(args.output_dir)
 
@@ -228,7 +229,7 @@ def train(args, train_dataset, train_features, eval_features, eval_dataset, eval
 
             print(tr_loss)
             try:
-                if global_step % 10 == 0 and global_step != 0:
+                if global_step != 0 and (global_step % 10 == 0 or global_step == (len(epoch_iterator)-1)):
                     save_ckpt(f"{args.checkpoints_dir}/{args.checkpoints_filename}.pth", model, optimizer, scheduler,
                               global_step, tr_loss)
             except:
@@ -289,7 +290,6 @@ if __name__ == '__main__':
         type=int,
         help="language id of input for language-specific xlm models (see tokenization_xlm.PRETRAINED_INIT_CONFIGURATION)",
     )
-
     parser.add_argument('--output_dir', default='outputs', type=str)
     parser.add_argument('--download_squad', action="store_true")
     parser.add_argument('--squad_perc', default=75, type=int, help='The percentage of dataset to consider')
@@ -364,4 +364,5 @@ if __name__ == '__main__':
 
     global_step, tr_loss = train(args, train_dataset, train_features, eval_features, eval_dataset,
                                  evaluation_examples, model, tokenizer)
+
     print(f" global_step = {global_step}, average loss = {tr_loss}")
