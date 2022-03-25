@@ -238,6 +238,7 @@ def train(args, train_dataset, train_features, eval_features, eval_dataset, eval
             if args.max_steps > 0 and global_step > args.max_steps:
                 epoch_iterator.close()
                 break
+
         # To end training:
         if args.max_steps > 0 and global_step > args.max_steps:
             train_iterator.close()
@@ -291,6 +292,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--output_dir', default='outputs', type=str)
     parser.add_argument('--download_squad', action="store_true")
+    parser.add_argument('--squad_perc', default=75, type=int, help='The percentage of dataset to consider')
     parser.add_argument('--do_eval', action="store_true")
     parser.add_argument('--checkpoints_filename', default=None, type=str)
     parser.add_argument('--checkpoints_dir', default=None, type=str)
@@ -323,9 +325,12 @@ if __name__ == '__main__':
     model.to(device)
 
     squad = tfds.load('squad')
-    # Take only a limited num of examples for the training:
-    squad = {'train': squad['train'].take(128),
-             'validation': squad['validation'].take(64)}
+
+    if args.squad_perc:
+        # Take only a limited num of examples for the training:
+        print(f'You selected the {args.squad_perc}% of Squad dataset for fine-tuning \n')
+        squad = {'train': squad['train'].take(int(args.squad_perc / 100 * len(squad['train']))),
+                 'validation': squad['validation'].take(int(args.squad_perc / 100 * len(squad['validation'])))}
 
     processor = SquadV1Processor()
     training_examples = processor.get_examples_from_dataset(squad, evaluate=False)
