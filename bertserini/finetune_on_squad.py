@@ -80,13 +80,13 @@ def train(args, train_dataset, train_features, eval_features, eval_dataset, eval
     global_step = 0
     steps_trained_in_current_epoch = 0
 
-    files = os.listdir(args.checkpoint_dir)
-    if args.checkpoint_filename in files:
-        checkpoint = torch.load(args.model_dir)
-        model.load_state_dict(checkpoint['model_state_dict'])
-        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    files = os.listdir(args.checkpoints_dir)
+    if args.checkpoints_filename in files:
+        checkpoint = torch.load(f"{args.checkpoints_dir}/{args.checkpoints_filename}.pth")
+        model.load_state_dict(checkpoint['model_state'])
+        optimizer.load_state_dict(checkpoint['optimizer_state'])
         steps_trained_in_current_epoch = checkpoint['global_step']
-        check_loss = checkpoint['loss']
+        check_loss = checkpoint['tr_loss']
         global_step = steps_trained_in_current_epoch
         tr_loss = check_loss
 
@@ -284,8 +284,10 @@ if __name__=='__main__':
         help="language id of input for language-specific xlm models (see tokenization_xlm.PRETRAINED_INIT_CONFIGURATION)",
     )
 
+
     parser.add_argument('--output_dir', default='outputs', type=str)
     parser.add_argument('--checkpoints_dir', default=None, type=str)
+    parser.add_argument('--squad_perc', default=75, type=int, help='Choose the percentage of squad dataset to utilize')
     parser.add_argument('--download_squad', action="store_true")
     parser.add_argument('--do_eval', action="store_true")
     parser.add_argument('--checkpoint_filename', default=None, type=str)

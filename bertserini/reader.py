@@ -72,8 +72,7 @@ class BERT:
         eval_sampler = SequentialSampler(dataset)  # A Sampler that returns indices sequentially.
         eval_dataset = DataLoader(dataset, sampler=eval_sampler, batch_size=32)
 
-Frank L, [20/03/2022 18:27]
-all_results = []
+        all_results = []
         for batch in eval_dataset:
             model.eval() # the common practice for evaluating/validation is using torch.no_grad() in pair with model.eval() to turn off gradients computation
             batch = tuple(t.to(device) for t in batch)
