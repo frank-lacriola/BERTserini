@@ -202,7 +202,7 @@ def train(args, train_dataset, train_features, eval_features, eval_dataset, eval
                 output_dir = os.path.join(args.output_dir, f'{args.model_name}_{args.squad_perc}')
                 if not os.path.exists(os.path.join(args.output_dir, f'{args.model_name}_{args.squad_perc}')):
                     os.makedirs(os.path.join(args.output_dir, f'{args.model_name}_{args.squad_perc}'))
-                    
+
                 output_prediction_file = os.path.join(output_dir, "predictions.json")
                 output_nbest_file = os.path.join(output_dir, "nbest_predictions.json")
                 output_null_log_odds_file = None
@@ -276,9 +276,10 @@ if __name__ == '__main__':
     parser.add_argument('--eval_batch_size', type=int, default=4)
     parser.add_argument("--n_best_size", default=20, type=int,
                         help="The total number of n-best predictions to generate in the nbest_predictions.json output file.")
-    parser.add_argument("--max_answer_length", default=30, type=int,
-                        help="The maximum length of an answer that can be generated. This is needed because the start "
-                        "and end predictions are not conditioned on one another.")
+    parser.add_argument("--max_answer_length", default=30, type=int, help="The maximum length of an answer that can be generated."
+                        " This is needed because the start and end predictions are not conditioned on one another.")
+    parser.add_argument("--verbose_logging", action="store_true", help="If true, all of the warnings related to data processing will be printed.")
+    parser.add_argument("--lang_id", default=0, type=int, help="language id of input for language-specific xlm models (see tokenization_xlm.PRETRAINED_INIT_CONFIGURATION)")
     parser.add_argument("--lang_id", default=0, type=int, help="language id of input for language-specific xlm models (see tokenization_xlm.PRETRAINED_INIT_CONFIGURATION)")
     parser.add_argument('--output_dir', default='outputs', type=str)
     parser.add_argument('--download_squad', action="store_true")
@@ -287,6 +288,7 @@ if __name__ == '__main__':
     parser.add_argument('--checkpoints_filename', default=None, type=str)
     parser.add_argument('--checkpoints_dir', default=None, type=str)
     parser.add_argument('--squad_features_dir', default=None, type=str)
+
 
     args = parser.parse_args()
 
@@ -327,29 +329,52 @@ if __name__ == '__main__':
     training_examples = processor.get_examples_from_dataset(squad, evaluate=False)
     evaluation_examples = processor.get_examples_from_dataset(squad, evaluate=True)
 
-    train_features, train_dataset = squad_convert_examples_to_features(
-        examples=training_examples,
-        tokenizer=tokenizer,
-        max_seq_length=384,
-        doc_stride=128,
-        max_query_length=64,
-        is_training=False,
-        return_dataset="pt",
-        # Either ‘pt’ or ‘tf’. if ‘pt’: returns a torch.data.TensorDataset, if ‘tf’: returns a tf.data.Dataset
-        threads=1
-    )
+    train_features = train_dataset = eval_features = eval_dataset = None
+    if args.squad_features_dir:
+        features_files = os.listdir(args.squad_features_dir)
+        if (f'train_features_{args.squad_perc}.pt' in features_files
+                and f'train_dataset_{args.squad_perc}.pt' in features_files):
+            print(f'\n Loading squad train features and dataset from {args.squad_features_dir}...')
+            train_features = torch.load(os.path.join(args.squad_features_dir, f'train_features_{args.squad_perc}.pt'))
+            train_dataset = torch.load(os.path.join(args.squad_features_dir, f'train_dataset_{args.squad_perc}.pt'))
 
-    eval_features, eval_dataset = squad_convert_examples_to_features(
-        examples=evaluation_examples,
-        tokenizer=tokenizer,
-        max_seq_length=384,
-        doc_stride=128,
-        max_query_length=64,
-        is_training=False,
-        return_dataset="pt",
-        # Either ‘pt’ or ‘tf’. if ‘pt’: returns a torch.data.TensorDataset, if ‘tf’: returns a tf.data.Dataset
-        threads=1
-    )
+        if (f'eval_features_{args.squad_perc}.pt' in features_files
+                and f'eval_dataset_{args.squad_perc}.pt' in features_files):
+            eval_features = torch.load(os.path.join(args.squad_features_dir, f'eval_features_{args.squad_perc}.pt'))
+            eval_dataset = torch.load(os.path.join(args.squad_features_dir, f'eval_dataset_{args.squad_perc}.pt'))
+            print(f'\n Loading squad eval features and dataset from {args.squad_features_dir}...')
+
+    if not (train_features and train_dataset and eval_features and eval_dataset):
+        if not(train_features and train_dataset):
+            train_features, train_dataset = squad_convert_examples_to_features(
+                examples=training_examples,
+                tokenizer=tokenizer,
+                max_seq_length=384,
+                doc_stride=128,
+                max_query_length=64,
+                is_training=False,
+                return_dataset="pt",
+                # Either ‘pt’ or ‘tf’. if ‘pt’: returns a torch.data.TensorDataset, if ‘tf’: returns a tf.data.Dataset
+                threads=1
+            )
+        if not(eval_features and eval_dataset):
+            eval_features, eval_dataset = squad_convert_examples_to_features(
+                examples=evaluation_examples,
+                tokenizer=tokenizer,
+                max_seq_length=384,
+                doc_stride=128,
+                max_query_length=64,
+                is_training=False,
+                return_dataset="pt",
+                # Either ‘pt’ or ‘tf’. if ‘pt’: returns a torch.data.TensorDataset, if ‘tf’: returns a tf.data.Dataset
+                threads=1
+            )
+        if args.squad_features_dir:
+            torch.save(train_features, os.path.join(args.squad_features_dir, f'train_features_{args.squad_perc}.pt'))
+            torch.save(train_dataset, os.path.join(args.squad_features_dir, f'train_dataset_{args.squad_perc}.pt'))
+            torch.save(eval_features, os.path.join(args.squad_features_dir, f'eval_features_{args.squad_perc}.pt'))
+            torch.save(eval_dataset, os.path.join(args.squad_features_dir, f'eval_dataset_{args.squad_perc}.pt'))
+            print(f'\n Squad features and datasets saved at {args.squad_features_dir}')
 
     print("Training/evaluation parameters %s", args)
 
