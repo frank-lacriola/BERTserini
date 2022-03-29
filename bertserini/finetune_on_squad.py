@@ -280,7 +280,6 @@ if __name__ == '__main__':
                         " This is needed because the start and end predictions are not conditioned on one another.")
     parser.add_argument("--verbose_logging", action="store_true", help="If true, all of the warnings related to data processing will be printed.")
     parser.add_argument("--lang_id", default=0, type=int, help="language id of input for language-specific xlm models (see tokenization_xlm.PRETRAINED_INIT_CONFIGURATION)")
-    parser.add_argument("--lang_id", default=0, type=int, help="language id of input for language-specific xlm models (see tokenization_xlm.PRETRAINED_INIT_CONFIGURATION)")
     parser.add_argument('--output_dir', default='outputs', type=str)
     parser.add_argument('--download_squad', action="store_true")
     parser.add_argument('--squad_perc', default=75.0, type=float, help='The percentage of dataset to consider')
