@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/BERT-Serini.iml" filepath="$PROJECT_DIR$/.idea/BERT-Serini.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../BERTserini-DNLP/.idea/BERTserini-DNLP.iml" filepath="$PROJECT_DIR$/../BERTserini-DNLP/.idea/BERTserini-DNLP.iml" />
     </modules>
   </component>
 </project>

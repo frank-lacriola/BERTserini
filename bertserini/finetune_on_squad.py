@@ -33,8 +33,7 @@ from tqdm import tqdm, trange
 
 
 def save_ckpt(path, model, optimizer, scheduler, global_step, loss):
-    """ save current model
-    """
+    """ save current model"""
     state = {
         "global_step": global_step,
         "model_state": model.state_dict(),
@@ -84,9 +83,9 @@ def train(args, train_dataset, train_features, eval_features, eval_dataset, eval
     # Loading states
     try:
         files = os.listdir(args.checkpoints_dir)
-        print(files)
-        if args.checkpoints_filename in files:
+        if f'{args.checkpoints_filename}.pth' in files:
             checkpoint = torch.load(f'{args.checkpoints_dir}/{args.checkpoints_filename}.pth')
+            print(f'Loading {args.checkpoints_filename}.pth from {args.checkpoints_dir}...')
             model.load_state_dict(checkpoint['model_state'])
             optimizer.load_state_dict(checkpoint['optimizer_state'])
             steps_trained_in_current_epoch = checkpoint['global_step']
@@ -134,6 +133,9 @@ def train(args, train_dataset, train_features, eval_features, eval_dataset, eval
                 "end_positions": batch[4],
             }
 
+            if args.model_name == 'distilbert-base-uncased':
+                del inputs['token_type_ids']
+
             # Casts operations to mixed precision
             with torch.cuda.amp.autocast():
                 outputs = model(**inputs)
@@ -145,7 +147,7 @@ def train(args, train_dataset, train_features, eval_features, eval_dataset, eval
             tr_loss += loss.item()
 
             # EVALUATION:
-            if args.do_eval and global_step != 0 and (global_step % 10 == 0 or global_step == (len(epoch_iterator)-1)):
+            if args.do_eval and global_step != 0 and (global_step % 10 == 0 or global_step == (len(epoch_iterator) - 1)):
                 if not os.path.exists(args.output_dir):
                     os.makedirs(args.output_dir)
 
@@ -155,8 +157,8 @@ def train(args, train_dataset, train_features, eval_features, eval_dataset, eval
 
                 # Eval!
                 print("***** Running evaluation  *****")
-                print("  Num examples = %d", len(eval_dataset))
-                print("  Batch size = %d", args.eval_batch_size)
+                print("  Num examples = ", len(eval_dataset))
+                print("  Batch size = ", args.eval_batch_size)
 
                 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -177,6 +179,9 @@ def train(args, train_dataset, train_features, eval_features, eval_dataset, eval
                         }
                         feature_indices = batch[3]
 
+                        if args.model_name == 'distilbert-base-uncased':
+                            del inputs['token_type_ids']
+
                         # Casts operations to mixed precision
                         with torch.cuda.amp.autocast():
                             outputs = model(**inputs)
@@ -191,12 +196,14 @@ def train(args, train_dataset, train_features, eval_features, eval_dataset, eval
                         all_results.append(result)
 
                 evalTime = timeit.default_timer() - start_time
-                logger.info("  Evaluation done in total %f secs (%f sec per example)", evalTime,
-                            evalTime / len(eval_dataset))
+                logger.info(f"  Evaluation done in total {evalTime} secs ({evalTime / len(eval_dataset)} sec per example")
 
                 # Compute predictions
-                output_prediction_file = os.path.join(args.output_dir, "predictions.json")
-                output_nbest_file = os.path.join(args.output_dir, "nbest_predictions.json")
+                if not os.path.exists(os.path.join(args.output_dir, f'{args.model_name}_{args.squad_perc}')):
+                    os.makedirs(os.path.join(args.output_dir, f'{args.model_name}_{args.squad_perc}'))
+                    output_dir = os.path.join(args.output_dir, f'{args.model_name}_{args.squad_perc}')
+                output_prediction_file = os.path.join(output_dir, "predictions.json")
+                output_nbest_file = os.path.join(output_dir, "nbest_predictions.json")
                 output_null_log_odds_file = None
 
                 predictions = compute_predictions_logits(
@@ -229,9 +236,10 @@ def train(args, train_dataset, train_features, eval_features, eval_dataset, eval
 
             print(tr_loss)
             try:
-                if global_step != 0 and (global_step % 10 == 0 or global_step == (len(epoch_iterator)-1)):
+                if global_step != 0 and (global_step % 10 == 0 or global_step == (len(epoch_iterator) - 1)):
                     save_ckpt(f"{args.checkpoints_dir}/{args.checkpoints_filename}.pth", model, optimizer, scheduler,
                               global_step, tr_loss)
+                    print(f' \n Checkpoint saved at {args.checkpoints_dir}/{args.checkpoints_filename}.pth')
             except:
                 print('Checkpoint dir or file name wrong or not specified!')
 
@@ -292,7 +300,7 @@ if __name__ == '__main__':
     )
     parser.add_argument('--output_dir', default='outputs', type=str)
     parser.add_argument('--download_squad', action="store_true")
-    parser.add_argument('--squad_perc', default=75, type=int, help='The percentage of dataset to consider')
+    parser.add_argument('--squad_perc', default=75.0, type=float, help='The percentage of dataset to consider')
     parser.add_argument('--do_eval', action="store_true")
     parser.add_argument('--checkpoints_filename', default=None, type=str)
     parser.add_argument('--checkpoints_dir', default=None, type=str)
