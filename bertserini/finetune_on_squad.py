@@ -198,10 +198,11 @@ def train(args, train_dataset, train_features, eval_features, eval_dataset, eval
                 evalTime = timeit.default_timer() - start_time
                 logger.info(f"  Evaluation done in total {evalTime} secs ({evalTime / len(eval_dataset)} sec per example")
 
-                # Compute predictions
+                # Compute predictions and save output files
+                output_dir = os.path.join(args.output_dir, f'{args.model_name}_{args.squad_perc}')
                 if not os.path.exists(os.path.join(args.output_dir, f'{args.model_name}_{args.squad_perc}')):
                     os.makedirs(os.path.join(args.output_dir, f'{args.model_name}_{args.squad_perc}'))
-                    output_dir = os.path.join(args.output_dir, f'{args.model_name}_{args.squad_perc}')
+                    
                 output_prediction_file = os.path.join(output_dir, "predictions.json")
                 output_nbest_file = os.path.join(output_dir, "nbest_predictions.json")
                 output_null_log_odds_file = None
@@ -273,37 +274,19 @@ if __name__ == '__main__':
     parser.add_argument('--model_name', type=str, default='bert-base-uncased')
     parser.add_argument('--weight_decay', type=float, default=0.0)
     parser.add_argument('--eval_batch_size', type=int, default=4)
-    parser.add_argument(
-        "--n_best_size",
-        default=20,
-        type=int,
-        help="The total number of n-best predictions to generate in the nbest_predictions.json output file.",
-    )
-    parser.add_argument(
-        "--max_answer_length",
-        default=30,
-        type=int,
-        help="The maximum length of an answer that can be generated. This is needed because the start "
-             "and end predictions are not conditioned on one another.",
-    )
-    parser.add_argument(
-        "--verbose_logging",
-        action="store_true",
-        help="If true, all of the warnings related to data processing will be printed. "
-             "A number of warnings are expected for a normal SQuAD evaluation.",
-    )
-    parser.add_argument(
-        "--lang_id",
-        default=0,
-        type=int,
-        help="language id of input for language-specific xlm models (see tokenization_xlm.PRETRAINED_INIT_CONFIGURATION)",
-    )
+    parser.add_argument("--n_best_size", default=20, type=int,
+                        help="The total number of n-best predictions to generate in the nbest_predictions.json output file.")
+    parser.add_argument("--max_answer_length", default=30, type=int,
+                        help="The maximum length of an answer that can be generated. This is needed because the start "
+                        "and end predictions are not conditioned on one another.")
+    parser.add_argument("--lang_id", default=0, type=int, help="language id of input for language-specific xlm models (see tokenization_xlm.PRETRAINED_INIT_CONFIGURATION)")
     parser.add_argument('--output_dir', default='outputs', type=str)
     parser.add_argument('--download_squad', action="store_true")
     parser.add_argument('--squad_perc', default=75.0, type=float, help='The percentage of dataset to consider')
     parser.add_argument('--do_eval', action="store_true")
     parser.add_argument('--checkpoints_filename', default=None, type=str)
     parser.add_argument('--checkpoints_dir', default=None, type=str)
+    parser.add_argument('--squad_features_dir', default=None, type=str)
 
     args = parser.parse_args()
 
