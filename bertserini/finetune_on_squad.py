@@ -30,7 +30,7 @@ import gc
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torch.utils.data.distributed import DistributedSampler
 from tqdm import tqdm, trange
-
+import json
 
 def save_ckpt(path, model, optimizer, scheduler, global_step, loss):
     """ save current model"""
@@ -147,7 +147,7 @@ def train(args, train_dataset, train_features, eval_features, eval_dataset, eval
             tr_loss += loss.item()
 
             # EVALUATION:
-            if args.do_eval and global_step != 0 and (global_step % 10 == 0 or global_step == (len(epoch_iterator) - 1)):
+            if args.freq_eval != None and global_step != 0 and (global_step % args.freq_eval == 0 or global_step == (len(epoch_iterator) - 1)):
                 if not os.path.exists(args.output_dir):
                     os.makedirs(args.output_dir)
 
@@ -205,6 +205,7 @@ def train(args, train_dataset, train_features, eval_features, eval_dataset, eval
 
                 output_prediction_file = os.path.join(output_dir, "predictions.json")
                 output_nbest_file = os.path.join(output_dir, "nbest_predictions.json")
+                output_history_file = os.path.join(output_dir, "history.json")
                 output_null_log_odds_file = None
 
                 predictions = compute_predictions_logits(
@@ -226,6 +227,16 @@ def train(args, train_dataset, train_features, eval_features, eval_dataset, eval
                 # Compute the F1 and exact scores.
                 results = squad_evaluate(evaluation_examples, predictions)
                 print("F1 score eval: ", results)
+                dictionary = [results, {"global_step":global_step}]
+                if os.path.isfile(output_history_file):
+                    with open(output_history_file, "r") as fp:
+                        feeds = json.load(fp)
+                    feeds.append(dictionary)
+                    with open(output_history_file, "w") as f:
+                        json.dump(feeds, f, indent=4)
+                else:
+                    with open(output_history_file, "w") as f:
+                        json.dump(dictionary,f, indent=4)
                 # logging_loss = tr_loss
 
             # Unscales gradients and calls
@@ -283,7 +294,7 @@ if __name__ == '__main__':
     parser.add_argument('--output_dir', default='outputs', type=str)
     parser.add_argument('--download_squad', action="store_true")
     parser.add_argument('--squad_perc', default=75.0, type=float, help='The percentage of dataset to consider')
-    parser.add_argument('--do_eval', action="store_true")
+    parser.add_argument('--freq_eval', default=None, type=int, help="frequency w.r.t. global_step to perform evaluation")
     parser.add_argument('--checkpoints_filename', default=None, type=str)
     parser.add_argument('--checkpoints_dir', default=None, type=str)
     parser.add_argument('--squad_features_dir', default=None, type=str)
