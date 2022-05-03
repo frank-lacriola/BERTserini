@@ -162,20 +162,20 @@ if __name__ == '__main__':
     parser.add_argument('--train_batch_size', type=int, default=4)
     parser.add_argument('--num_train_epochs', type=float, default=1.0)
     parser.add_argument('--learning_rate', type=float, default=3e-5)
-    parser.add_argument('--warmup_steps', default=0,
-                        help='Create a schedule with a learning rate that decreases linearly from the initial lr set in the optimizer to 0, after a warmup period during which it increases linearly from 0 to the initial lr set in the optimizer')
+    parser.add_argument('--warmup_steps', default=0)
     parser.add_argument('--seed', type=int, default=42)
     parser.add_argument('--config_name', type=str, default='bert-base-uncased')
     parser.add_argument('--tokenizer_name', type=str, default='bert-base-uncased')
     parser.add_argument('--model_name', type=str, default='bert-base-uncased')
     parser.add_argument('--weight_decay', type=float, default=0.0)
     parser.add_argument('--eval_batch_size', type=int, default=4)
-    parser.add_argument("--max_answer_length", default=30, type=int, help="The maximum length of an answer that can be generated."
-                        " This is needed because the start and end predictions are not conditioned on one another.")
+    parser.add_argument("--max_answer_length", default=30, type=int)
     parser.add_argument('--squad_perc', default=75.0, type=float, help='The percentage of dataset to consider')
     parser.add_argument('--freq_eval', default=500, type=int, help="frequency w.r.t. global_step to perform evaluation")
     parser.add_argument('--log_dir', default=None, type=str)
     parser.add_argument('--checkpoints_dir', default=None, type=str)
+    parser.add_argument('--model_dir', default=None, type=str)
+
 
     args = parser.parse_args()
 
@@ -235,9 +235,11 @@ if __name__ == '__main__':
     )
     
     # If add_argument is True the trainer will catch the last check-point available from the output-dir 
-    if args.checkpoints_dir:
+    if args.model_dir:
+        print('Resuming training from checkpoint...')
         trainer.train(resume_from_checkpoint=args.checkpoints_dir)
     else:
+        print("Starting fine-tuning from scratch... \n")
         trainer.train()
 
     predictions = trainer.predict(validation_dataset)
