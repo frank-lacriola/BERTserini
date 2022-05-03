@@ -114,9 +114,9 @@ def process_dataset(tokenizer, perc_dataset):
 	prova_eval_small =  eval_small.map(format_dataset, remove_columns=["search_results", "question_source", "entity_pages", "answer"])
 
 	train_dataset = prova_small.map(
-	        (lambda examples: preprocess_training_examples(examples, tokenizer)),
-	        batched=True,
-	        remove_columns=prova_small.column_names,
+		(lambda examples: preprocess_training_examples(examples, tokenizer)),
+		batched=True,
+		remove_columns=prova_small.column_names,
 	    )
 
 	validation_dataset = prova_eval_small.map(
@@ -130,32 +130,31 @@ def process_dataset(tokenizer, perc_dataset):
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
-    parser.add_argument('--train_batch_size', type=int, default=16)
-    parser.add_argument('--eval_batch_size', type=int, default=8)
-    parser.add_argument('--num_train_epochs', type=float, default=1.0)
-    parser.add_argument('--learning_rate', type=float, default=3e-5)
-    parser.add_argument('--warmup_steps', default=0,
-                        help='Create a schedule with a learning rate that decreases linearly from the initial lr set in the optimizer to 0, after a warmup period during which it increases linearly from 0 to the initial lr set in the optimizer')
-    parser.add_argument('--seed', type=int, default=42)
-    parser.add_argument('--config_name', type=str, default='bert-base-uncased')
-    parser.add_argument('--tokenizer_name', type=str, default='bert-base-uncased')
-    parser.add_argument('--model_name', type=str, default='bert-base-uncased')
-    parser.add_argument('--weight_decay', type=float, default=0.0)
-    parser.add_argument('--eval_batch_size', type=int, default=4)
-    parser.add_argument('--trivia_perc', default=5.0, type=float, help='The percentage of dataset to consider')
-    parser.add_argument('--freq_eval', default=500, type=int, help="frequency w.r.t. global_step to perform evaluation")
-    parser.add_argument('--log_dir', default=None, type=str)
-    parser.add_argument('--checkpoints_dir', default=None, type=str)
-    parser.add_argument('--resume_training', default=False, type=bool)
+	parser.add_argument('--train_batch_size', type=int, default=16)
+	parser.add_argument('--eval_batch_size', type=int, default=8)
+	parser.add_argument('--num_train_epochs', type=float, default=1.0)
+	parser.add_argument('--learning_rate', type=float, default=3e-5)
+	parser.add_argument('--warmup_steps', default=0,
+			help='Create a schedule with a learning rate that decreases linearly from the initial lr set in the optimizer to 0, after a warmup period during which it increases linearly from 0 to the initial lr set in the optimizer')
+	parser.add_argument('--seed', type=int, default=42)
+	parser.add_argument('--config_name', type=str, default='bert-base-uncased')
+	parser.add_argument('--tokenizer_name', type=str, default='bert-base-uncased')
+	parser.add_argument('--model_name', type=str, default='bert-base-uncased')
+	parser.add_argument('--weight_decay', type=float, default=0.0)
+	parser.add_argument('--trivia_perc', default=5.0, type=float, help='The percentage of dataset to consider')
+	parser.add_argument('--freq_eval', default=500, type=int, help="frequency w.r.t. global_step to perform evaluation")
+	parser.add_argument('--log_dir', default=None, type=str)
+	parser.add_argument('--checkpoints_dir', default=None, type=str)
+	parser.add_argument('--resume_training', default=False, type=bool)
 
-    args = parser.parse_args()
+	args = parser.parse_args()
 
-    # Set seed for reproducibility
-    random.seed(args.seed)
-    np.random.seed(args.seed)
-    torch.manual_seed(args.seed)
+	# Set seed for reproducibility
+	random.seed(args.seed)
+	np.random.seed(args.seed)
+	torch.manual_seed(args.seed)
 
-    model = AutoModelForQuestionAnswering.from_pretrained("bert-base-uncased")
+	model = AutoModelForQuestionAnswering.from_pretrained("bert-base-uncased")
 	tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
 
 	train_dataset, validation_dataset = process_dataset(tokenizer, args.trivia_perc)
