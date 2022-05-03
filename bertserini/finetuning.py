@@ -98,7 +98,6 @@ def preprocess_validation_examples(examples, tokenizer):
     return inputs
 
 
-
 def compute_metrics(start_logits, end_logits, features, examples):
     metric = load_metric("squad")
     n_best = 20
@@ -119,9 +118,10 @@ def compute_metrics(start_logits, end_logits, features, examples):
             start_logit = start_logits[feature_index]
             end_logit = end_logits[feature_index]
             offsets = features[feature_index]["offset_mapping"]
-
-            start_indexes = np.argsort(start_logit)[-1 : -n_best - 1 : -1].tolist()
-            end_indexes = np.argsort(end_logit)[-1 : -n_best - 1 : -1].tolist()
+            # For each sub-token returned by the tokenizer, the offset mapping gives us a tuple indicating the
+            # sub-token’s start position and end position relative to the original token it was split from
+            start_indexes = np.argsort(start_logit)[-1: -n_best - 1: -1].tolist()
+            end_indexes = np.argsort(end_logit)[-1: -n_best - 1: -1].tolist()
             for start_index in start_indexes:
                 for end_index in end_indexes:
                     # Skip answers that are not fully in the context
@@ -133,12 +133,15 @@ def compute_metrics(start_logits, end_logits, features, examples):
                         or end_index - start_index + 1 > max_answer_length
                     ):
                         continue
-                   
-                    answer = {
-                        "text": context[offsets[start_index][0] : offsets[end_index][1]],
-                        "logit_score": start_logit[start_index] + end_logit[end_index],
-                    }
-                    answers.append(answer)
+                    try:
+                        answer = {
+                            "text": context[offsets[start_index][0]: offsets[end_index][1]],
+                            "logit_score": start_logit[start_index] + end_logit[end_index],
+                        }
+                        answers.append(answer)
+
+                    except:
+                        continue
 
         # Select the answer with the best score
         if len(answers) > 0:
@@ -173,7 +176,6 @@ if __name__ == '__main__':
     parser.add_argument('--freq_eval', default=500, type=int, help="frequency w.r.t. global_step to perform evaluation")
     parser.add_argument('--log_dir', default=None, type=str)
     parser.add_argument('--checkpoints_dir', default=None, type=str)
-    parser.add_argument('--resume_training', default=False, type=bool)
 
     args = parser.parse_args()
 
@@ -233,9 +235,10 @@ if __name__ == '__main__':
     )
     
     # If add_argument is True the trainer will catch the last check-point available from the output-dir 
-    trainer.train(args.resume_training)
-
-
+    if args.checkpoints_dir:
+        trainer.train(resume_from_checkpoint=args.checkpoints_dir)
+    else:
+        trainer.train()
 
     predictions = trainer.predict(validation_dataset)
     start_logits, end_logits = predictions[0]
