@@ -1,41 +1,11 @@
-from reader import BERT
+from BERTserini import BERTserini
 import argparse
-from utils.structures import Question, Answer
-from pyserini.search.lucene import  LuceneSearcher
-from retriever import retrieve
+import numpy as np
 
-class BERTserini:
-    def __init__(self, question_string, model_to_load):
-        self.question = Question(question_string)
-        self.searcher = LuceneSearcher.from_prebuilt_index("wikipedia-dpr")
-        self.bert = BERT(model_to_load)
+def main(args):
+    example_question = {'question':args.question_text, "id":np.random.randint(0,10545714)}
 
-    def retrieve(self):
-        self.contexts = retrieve(self.question, self.searcher)
-    
-    def get_context(self):
-        return self.contexts
-
-    def answer(self):
-        possible_questions = self.bert.predict(self.question, self.contexts)
-        for ans in possible_questions:
-            ans.aggregate_score(0.80)
-        best = sorted(possible_questions, key=lambda x: x.total_score, reverse=True)[0]
-        return best.text
-    
-    def get_question(self):
-        return self.question.text
-        
- 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, help="model to load")
-    parser.add_argument('--question_text', type=str, help="Question to ask the model")
-
-
-    args = parser.parse_args()
-
-    bertserini = BERTserini(args.question_text ,args.model)
+    bertserini = BERTserini(example_question,args.model)
     print("*"*60)
     print("Retrieving contexts...")
     print("*"*60)
@@ -48,3 +18,14 @@ if __name__ == "__main__":
     print("Answer:")
     print(risposta)
     print("*"*60)
+
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--model', type=str, help="model to load")
+    parser.add_argument('--question_text', type=str, help="Question to ask the model")
+
+    args = parser.parse_args()
+
+    main(args)

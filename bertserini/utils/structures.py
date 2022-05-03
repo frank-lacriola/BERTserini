@@ -32,3 +32,6 @@ class Answer:
         self.score = score
         self.ctx_score = ctx_score
         self.total_score = total_score
+        
+    def aggregate_score(self, weight):
+        self.total_score = weight*self.score + (1-weight)*self.ctx_score

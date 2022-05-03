@@ -3,12 +3,14 @@ from torch.utils.data import DataLoader, SequentialSampler
 import torch
 from transformers.data.processors.squad import SquadResult
 from utils.structures import  Answer
-from finetune_on_squad import to_list
 from utils.utils_squad import SquadExample, compute_predictions_logits
+
+def to_list(tensor):
+    return tensor.detach().cpu().tolist()
 
 
 class BERT:
-    def __init__(self, checkpoints_dir, model_name: str = 'bert-base-uncased', tokenizer_name: str = 'bert-base-uncased'):
+    def __init__(self, model_name, is_distilbert=False,tokenizer_name: str = 'bert-base-uncased'):
         if tokenizer_name is None:
             tokenizer_name = model_name
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -30,15 +32,13 @@ class BERT:
             "version_2_with_negative": True,
             "null_score_diff_threshold": 0,
         }
-        self.checkpoints_dir = checkpoints_dir
-        
+        self.is_distilbert = is_distilbert
+
     def predict(self, question, contexts):
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
         tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased', use_fast=False)
-        state_dict = torch.load(self.checkpoints_dir)
-        model = AutoModelForQuestionAnswering.from_pretrained('bert-base-uncased')
-        model.load_state_dict(state_dict['model_state'])
+        model = self.model
         model.to(device)
 
         # Let's create examples from contexts to feed the model
@@ -87,16 +87,16 @@ class BERT:
                     "token_type_ids": batch[2],
                 }
                 feature_indices = batch[3]
+
+                if self.is_distilbert:
+                    del inputs['token_type_ids']
                 outputs = model(**inputs)
-                print(outputs)
-                #print(f"start: {outputs[0]}")
-                #print(f"end: {outputs[1]}")
+                #print(outputs)
                 start_logits, end_logits = outputs[0], outputs[1]
                 for i, feature_index in enumerate(feature_indices):
                         eval_feature = features[feature_index.item()]
                         unique_id = int(eval_feature.unique_id)
                         start_logits, end_logits = to_list(outputs.start_logits[i]), to_list(outputs.end_logits[i])
-                        #print(start_logits, end_logits)
                         result = SquadResult(unique_id, start_logits, end_logits)
                         all_results.append(result)
 

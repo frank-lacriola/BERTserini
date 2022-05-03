@@ -409,3 +409,8 @@ def compute_predictions_logits(
             writer.write(json.dumps(scores_diff_json, indent=4) + "\n")
 
     return all_predictions, all_nbest_json
+
+def get_best_answer(candidates, weight=0.5):
+    for ans in candidates:
+        ans.aggregate_score(weight)
+    return sorted(candidates, key=lambda x: x.total_score, reverse=True)[0]
