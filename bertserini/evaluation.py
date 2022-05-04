@@ -1,5 +1,5 @@
 import argparse
-from datasets import load_metric
+from datasets import load_metric, load_dataset
 from BERTserini import BERTserini
 import numpy as np
 
