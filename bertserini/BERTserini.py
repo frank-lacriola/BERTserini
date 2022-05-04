@@ -32,8 +32,8 @@ class BERTserini:
 
     def answer(self):
         possible_questions = self.bert.predict(self.question, self.contexts)
-        for el in possible_questions:
-            #print(f"possible solution: {el.text}")
+        #for el in possible_questions:
+        #print(f"possible solution: {el.text}")
         answer = get_best_answer(possible_questions, 0.70)
         if self.lang !='en':
             print(f"Original answer: {answer.text}")
