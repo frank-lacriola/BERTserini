@@ -8,9 +8,13 @@ from easynmt import EasyNMT
 from retriever import retrieve
 
 class BERTserini:
-    def __init__(self, example, model_to_load): 
-        self.original_question = example['question']
+    def __init__(self, model_to_load): 
+        self.searcher = LuceneSearcher.from_prebuilt_index("enwiki-paragraphs")
+        self.bert = BERT(model_to_load)
         self.lang_model = EasyNMT('opus-mt')
+
+    def retrieve(self,example):
+        self.original_question = example['question']
         self.lang = self.lang_model.language_detection(example['question'])
         print(f"Language detencted is: {self.lang} ")
         if self.lang != "en":
@@ -21,10 +25,6 @@ class BERTserini:
             question = self.original_question
         self.question = Question(question)
         self.question.id = example['id']
-        self.searcher = LuceneSearcher.from_prebuilt_index("enwiki-paragraphs")
-        self.bert = BERT(model_to_load)
-
-    def retrieve(self):
         self.contexts = retrieve(self.question, self.searcher)
     
     def get_context(self):
@@ -33,7 +33,7 @@ class BERTserini:
     def answer(self):
         possible_questions = self.bert.predict(self.question, self.contexts)
         for el in possible_questions:
-            print(f"possible solution: {el.text}")
+            #print(f"possible solution: {el.text}")
         answer = get_best_answer(possible_questions, 0.70)
         if self.lang !='en':
             print(f"Original answer: {answer.text}")
