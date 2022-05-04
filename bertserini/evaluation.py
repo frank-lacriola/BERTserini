@@ -31,12 +31,12 @@ def main(model_to_load, num_val_examples):
 
 
 if __name__=="__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, help="model to load")
-    parser.add_argument('--num_eval_example', type=int, help="Number of examples to evaluate from the SQuAD validation set")
+	parser = argparse.ArgumentParser()
+	parser.add_argument('--model', type=str, help="model to load")
+	parser.add_argument('--num_eval_example', type=int, help="Number of examples to evaluate from the SQuAD validation set")
 	parser.add_argument('--seed', type=int, default=42)
-    args = parser.parse_args()
+	args = parser.parse_args()
 
-    np.random.seed(args.seed)
+	np.random.seed(args.seed)
 
-    main(args.model, args.num_eval_example)
+	main(args.model, args.num_eval_example)
