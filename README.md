@@ -33,7 +33,7 @@ Run this script to ask something to BERTserini and receive an answer:
 
 # How to evaluate the framework
 ```
-!python evaluation.py --model=  --is_distill_bert=  --num_eval_example=  --seed=
+!python evaluation.py --model=<name or path to the model>  --is_distill_bert=<boolean variable to use of distilBERT>  --num_eval_example=<the num of example you want to evaluate on>  --seed=<for reproducibility>
 ```
 
 # Datasets
