@@ -8,7 +8,7 @@ from easynmt import EasyNMT
 from retriever import retrieve
 
 class BERTserini:
-    def __init__(self, model_to_load, is_distill_bert):
+    def __init__(self, model_to_load, is_distill_bert=False):
         self.searcher = LuceneSearcher.from_prebuilt_index("enwiki-paragraphs")
         self.bert = BERT(model_to_load, is_distilbert=is_distill_bert)
         self.lang_model = EasyNMT('opus-mt')

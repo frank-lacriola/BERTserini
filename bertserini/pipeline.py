@@ -5,11 +5,11 @@ import numpy as np
 def main(args):
     example_question = {'question': args.question_text, "id": np.random.randint(0,10545714)}
 
-    bertserini = BERTserini(example_question, args.model)
-    print("*"*60)
+    bertserini = BERTserini(args.model)
+    print("*" * 60)
     print("Retrieving contexts...")
-    print("*"*60)
-    bertserini.retrieve(k=args.k)
+    print("*" * 60)
+    bertserini.retrieve(example_question, k=args.k)
     print("*"*60)
     print("Finding answering...")
     print("*"*60)
