@@ -11,14 +11,14 @@ The scripts in this repository allow to finetune the model chosen on SQuAD and T
 - [transformers](https://github.com/huggingface/transformers)
 - [datasets](https://github.com/huggingface/datasets) 
 - [pyserini](https://github.com/castorini/pyserini) For the retriever
-- [faiss](https://github.com/facebookresearch/faiss)
+- [faiss-gpu](https://github.com/facebookresearch/faiss)
 - [easyNMT](https://github.com/UKPLab/EasyNMT) For the translation of questions/answers
 
 
 # How to run the QA Pipeline
 Run this script to ask something to BERTserini and receive an answer:
 ```
-!python pipeline.py --model=<name or path to the model to load> --question_text=<text of the question to ask to the model> --k=10 --weight=0.5
+!python pipeline.py --model=<name or path to the model to load> --question_text=<text of the question to ask to the model> --k=10 --weight=0.5 --is_distill_bert=<boolean variable to use of distilBERT>
 ```
 
 # How to fine-tune on SQuAD
