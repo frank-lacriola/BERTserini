@@ -18,7 +18,7 @@ The scripts in this repository allow to finetune the model chosen on SQuAD and T
 # How to run the QA Pipeline
 Run this script to ask something to BERTserini and receive an answer:
 ```
-!python pipeline.py --model=<name or path to the model to load> --question_text=<text of the question to ask to the model>
+!python pipeline.py --model=<name or path to the model to load> --question_text=<text of the question to ask to the model> --k=10 --weight=0.5
 ```
 
 # How to fine-tune on SQuAD
@@ -33,7 +33,7 @@ Run this script to ask something to BERTserini and receive an answer:
 
 # How to evaluate the framework
 ```
-!python evaluation.py --model=<name or path to the model>  --is_distill_bert=<boolean variable to use of distilBERT>  --num_eval_example=<the num of example you want to evaluate on>  --seed=<for reproducibility>
+!python evaluation.py --model=<name or path to the model>  --is_distill_bert=<boolean variable to use of distilBERT>  --num_eval_example=<the num of example you want to evaluate on>  --seed=<for reproducibility> --k=10 --weight=0.5
 ```
 
 # Datasets
