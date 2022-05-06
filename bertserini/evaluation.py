@@ -23,7 +23,7 @@ def main(model_to_load, is_distill_bert, num_val_examples):
 	ground_truth = []
 	for i, question in enumerate(val_examples):
 		print(question['question'])
-		bertserini.retrieve(question)
+		bertserini.retrieve(question, k=args.k)
 		risposta = bertserini.answer(args.weight)
 		predicted_answers.append(risposta)
 		ground_truth.append({'answers': val_examples['answers'][i], 'id': val_examples['id'][i]})
@@ -34,9 +34,9 @@ def main(model_to_load, is_distill_bert, num_val_examples):
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--model', type=str, help="model to load")
+	parser.add_argument('--k', type=int, default=10, help="the number of context to retrieve")
 	parser.add_argument('--weight', type=float, default=0.5, help="weight for the linear interpolation")
-	parser.add_argument('--num_eval_example', type=int,
-						help="Number of examples to evaluate from the SQuAD validation set")
+	parser.add_argument('--num_eval_example', type=int, help="Number of examples to evaluate from the SQuAD validation set")
 	parser.add_argument('--seed', type=int, default=42)
 	parser.add_argument('--is_distill_bert', type=bool, default=False)
 

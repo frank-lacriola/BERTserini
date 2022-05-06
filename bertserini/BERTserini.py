@@ -14,7 +14,7 @@ class BERTserini:
         self.lang_model = EasyNMT('opus-mt')
 
 
-    def retrieve(self,example):
+    def retrieve(self, example, k):
         self.original_question = example['question']
         self.lang = self.lang_model.language_detection(example['question'])
         print(f"Language detencted is: {self.lang} ")
@@ -26,7 +26,7 @@ class BERTserini:
             question = self.original_question
         self.question = Question(question)
         self.question.id = example['id']
-        self.contexts = retrieve(self.question, self.searcher)
+        self.contexts = retrieve(self.question, self.searcher, k)
     
     def get_context(self):
         return self.contexts
