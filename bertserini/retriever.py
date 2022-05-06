@@ -12,9 +12,8 @@ def retrieve(question, searcher):
         #document = json.loads(document.raw()) # for indexes 'wikipedia-dpr'
         text = document.raw()               # for indexes 'enwiki-paragraphs'
         print(document.raw())
-        #text = document['contents']
+        #text = document['contents'] # for indexes 'wikipedia-dpr'
         language = 'en'
-        #print(document['contents'])
         para = Context(id, score, text, language)
         contexts.append(para)
     return contexts

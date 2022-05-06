@@ -65,7 +65,7 @@ class BERT:
                   doc_stride=128,
                   max_query_length=64,
                   is_training=False,
-                  return_dataset= "pt", # Either ‘pt’ or ‘tf’. if ‘pt’: returns a torch.data.TensorDataset, if ‘tf’: returns a tf.data.Dataset
+                  return_dataset= "pt",  # Either ‘pt’ or ‘tf’
                   threads= 1
                 )
 
@@ -74,7 +74,9 @@ class BERT:
 
         all_results = []
         for batch in eval_dataset:
-            model.eval() # the common practice for evaluating/validation is using torch.no_grad() in pair with model.eval() to turn off gradients computation
+            # the common practice for evaluating/validation is using torch.no_grad() in pair with
+            # model.eval() to turn off gradients computation
+            model.eval()
             batch = tuple(t.to(device) for t in batch)
             with torch.no_grad():
                 inputs = {
@@ -91,7 +93,6 @@ class BERT:
                 if self.is_distilbert:
                     del inputs['token_type_ids']
                 outputs = model(**inputs)
-                #print(outputs)
                 start_logits, end_logits = outputs[0], outputs[1]
                 for i, feature_index in enumerate(feature_indices):
                         eval_feature = features[feature_index.item()]

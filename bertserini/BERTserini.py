@@ -31,15 +31,14 @@ class BERTserini:
     def get_context(self):
         return self.contexts
 
-    def answer(self):
+    def answer(self, weight):
         possible_questions = self.bert.predict(self.question, self.contexts)
-        #for el in possible_questions:
-        #print(f"possible solution: {el.text}")
-        answer = get_best_answer(possible_questions, 0.70)
+        answer = get_best_answer(possible_questions, weight)
+
         if self.lang !='en':
             print(f"Original answer: {answer.text}")
             tran = self.lang_model.translate(answer.text, source_lang='en', target_lang=self.lang)
-            print("translated answer:",tran)
+            print("translated answer:", tran)
         pred_answer = {'prediction_text': answer.text, 'id': self.question.id}
         return pred_answer
     

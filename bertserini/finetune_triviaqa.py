@@ -8,7 +8,7 @@ import numpy as np
 
 
 def format_dataset(example):
-    # the context might be comprised of multiple contexts => me merge them here
+    # the context might be comprised of multiple contexts => we merge them here
     example["contexts"] = " ".join(("\n".join(example["entity_pages"]["wiki_context"])).split("\n"))
     example["answers"] = {}
     example["answers"]['text'] = example["answer"]["value"]
@@ -29,7 +29,7 @@ def preprocess_training_examples(examples,tokenizer):
         padding="max_length",
     )
 
-    #For each sub-token returned by the tokenizer, the offset mapping gives us a 
+    # For each sub-token returned by the tokenizer, the offset mapping gives us a
     # tuple indicating the sub-token's start position and end position relative to the original token it was split from.
     offset_mapping = inputs.pop("offset_mapping")
     sample_map = inputs.pop("overflow_to_sample_mapping")
@@ -142,7 +142,7 @@ if __name__ == "__main__":
 	parser.add_argument('--model_name', type=str, default='bert-base-uncased')
 	parser.add_argument('--weight_decay', type=float, default=0.0)
 	parser.add_argument('--trivia_perc', default=5.0, type=float, help='The percentage of dataset to consider')
-	parser.add_argument('--freq_eval', default=500, type=int, help="frequency w.r.t. global_step to perform evaluation")
+	parser.add_argument('--checkpoint_step', default=500, type=int, help="frequency w.r.t. global_step to perform evaluation")
 	parser.add_argument('--log_dir', default=None, type=str)
 	parser.add_argument('--checkpoints_dir', default=None, type=str)
 	parser.add_argument('--resume_training', default=False, type=bool)
@@ -170,7 +170,7 @@ if __name__ == "__main__":
 	    logging_steps=10,
 	    evaluation_strategy="no",
 	    save_strategy="steps",
-	    save_steps=args.freq_eval,
+	    save_steps=args.checkpoint_step,
 	    save_total_limit=2,
 	)
 

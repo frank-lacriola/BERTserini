@@ -12,7 +12,6 @@ import torch
 import random
 
 
-
 def preprocess_training_examples(examples,tokenizer):
     questions = [q.strip() for q in examples["question"]]
     inputs = tokenizer(
@@ -67,6 +66,7 @@ def preprocess_training_examples(examples,tokenizer):
     inputs["start_positions"] = start_positions
     inputs["end_positions"] = end_positions
     return inputs
+
 
 def preprocess_validation_examples(examples, tokenizer):
     questions = [q.strip() for q in examples["question"]]
@@ -133,6 +133,8 @@ def compute_metrics(start_logits, end_logits, features, examples):
                         or end_index - start_index + 1 > max_answer_length
                     ):
                         continue
+
+                    # We skip the example if it doesn't meet the constraints
                     try:
                         answer = {
                             "text": context[offsets[start_index][0]: offsets[end_index][1]],
@@ -170,8 +172,8 @@ if __name__ == '__main__':
     parser.add_argument('--weight_decay', type=float, default=0.0)
     parser.add_argument('--eval_batch_size', type=int, default=4)
     parser.add_argument("--max_answer_length", default=30, type=int)
-    parser.add_argument('--squad_perc', default=75.0, type=float, help='The percentage of dataset to consider')
-    parser.add_argument('--freq_eval', default=500, type=int, help="frequency w.r.t. global_step to perform evaluation")
+    parser.add_argument('--squad_perc', default=80.0, type=float, help='The percentage of dataset to consider')
+    parser.add_argument('--checkpoint_step', default=500, type=int, help="frequency w.r.t. global_step to perform evaluation")
     parser.add_argument('--log_dir', default=None, type=str)
     parser.add_argument('--checkpoints_dir', default=None, type=str)
     parser.add_argument('--model_dir', default=None, type=str)
@@ -214,7 +216,7 @@ if __name__ == '__main__':
         args.checkpoints_dir,
         evaluation_strategy="no",
         save_strategy="steps",
-        save_steps=args.freq_eval,
+        save_steps=args.checkpoint_step,
         learning_rate=args.learning_rate,
         num_train_epochs=args.num_train_epochs,
         weight_decay=0.01,
